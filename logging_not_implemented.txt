@@ -1,0 +1,40 @@
+func handleDNSQuery(w dns.ResponseWriter, r *dns.Msg) {
+    // Extract client's IP address and query details
+    clientIP := w.RemoteAddr().String()
+    queryName := r.Question[0].Name
+    queryType := dns.TypeToString[r.Question[0].Qtype]
+
+    // Log the received query
+    log.Printf("Received query from %s: %s %s\n", clientIP, queryName, queryType)
+
+    key := queryName + queryType
+    if response, found := cache.Get(key); found {
+        // Log cache hit
+        log.Printf("Cache hit for %s %s\n", queryName, queryType)
+        response.SetReply(r)
+        w.WriteMsg(response)
+        return
+    }
+
+    if !isUpstreamAvailable {
+        // Log serving stale if applicable
+        log.Printf("Serving stale (if available) for %s %s\n", queryName, queryType)
+        dns.HandleFailed(w, r)
+        return
+    }
+
+    // Forward the query to the upstream DNS server
+    c := new(dns.Client)
+    response, _, err := c.Exchange(r, upstreamDNS)
+    if err != nil {
+        log.Printf("Failed to reach upstream DNS for %s %s: %v\n", queryName, queryType, err)
+        isUpstreamAvailable = false
+        dns.HandleFailed(w, r)
+        return
+    }
+
+    // Log successful upstream query
+    log.Printf("Upstream resolved %s %s\n", queryName, queryType)
+    cache.Set(key, response, 5*time.Minute) // Cache with a TTL of 5 minutes
+    w.WriteMsg(response)
+}
