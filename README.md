@@ -56,4 +56,4 @@ Contributing
 Contributions to the Stale DNS Proxy Server are welcome. Feel free to fork the repository, make your changes, and submit a pull request. We appreciate contributions that improve the application's functionality, performance, or reliability.
 
 
-See [Deploymentguide.md] [https://github.com/chrisjchandler/safetydns/blob/main/Deploymentguide.md] for additional deployment details including docker & kubernetes 
+See [DeploymentGuide(https://github.com/chrisjchandler/safetydns/blob/main/Deploymentguide.md)[DeoloymentGuide] for additional deployment details including docker & kubernetes 
